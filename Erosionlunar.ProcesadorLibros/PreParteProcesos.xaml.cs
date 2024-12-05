@@ -30,16 +30,49 @@ namespace Erosionlunar.ProcesadorLibros
         {
             _context = new DBConector();
             pathProcesos = getPathProcesos();
-            var prepartesSinProceso = getPrePartesSinParte();
-            getArchivosPrePartes(prepartesSinProceso);
-            
+            var rawPrePartes = getPrePartesSinParte();
+            getArchivosPrePartes(rawPrePartes);
+            var objectsList = createListPPS(rawPrePartes);
+
             InitializeComponent();
-            PopulateGrid(prepartesSinProceso);
+            addToPreParteCombo(objectsList);
+            DG1.ItemsSource = objectsList;
             
         }
 
-
-
+        private void addToPreParteCombo(List<PreParteSeleccion> theList)
+        {
+            foreach(PreParteSeleccion onePP in theList)
+            {
+                PrePartesToUse.Items.Add(onePP.NumeroP);
+            }
+        }
+        private List<PreParteSeleccion> createListPPS(List<List<string>> theUpperList)
+        {
+            var thePPSList = new List<PreParteSeleccion>();
+            foreach(List<string> oneList in theUpperList)
+            {
+                thePPSList.Add(crearPPS(oneList));
+            }
+            return thePPSList;
+        }
+        private PreParteSeleccion crearPPS(List<string> theList)
+        {
+            int numeroP = stringToInt(theList[0]);
+            int idEmpresa = stringToInt(theList[1]);
+            string nombreE = theList[2];
+            var listaArchivos = new List<string>();
+            if (theList[3] != "No existe Carpeta Archivos")
+            {
+                listaArchivos = theList[3].Split('|').ToList().Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+            }
+            else
+            {
+                listaArchivos.Add(theList[3]);
+            }
+            var PPS = new PreParteSeleccion(numeroP, idEmpresa, nombreE, listaArchivos);
+            return PPS;
+        }
         private void getArchivosPrePartes(List<List<string>> losPrePartes)
         {
             for(int i = 0; i < losPrePartes.Count; i++)
@@ -74,7 +107,7 @@ namespace Erosionlunar.ProcesadorLibros
             string query = @"SELECT 
                                     PreParte.numeroP, 
                                     PreParte.idEmpresa, 
-                                    Empresas.nombreE    
+                                    Empresas.nombreCortoE    
                             FROM 
                                     PreParte
                             LEFT JOIN 
@@ -83,7 +116,7 @@ namespace Erosionlunar.ProcesadorLibros
                                     Empresas ON PreParte.idEmpresa = Empresas.idEmpresa
                             WHERE 
                                     Partes.numeroP IS NULL;";
-            List<string> columna = new List<string> { "numeroP", "idEmpresa", "nombreE" };
+            List<string> columna = new List<string> { "numeroP", "idEmpresa", "nombreCortoE" };
             return _context.readQueryList(query, columna);
         }
         private string getPathProcesos()
@@ -92,64 +125,38 @@ namespace Erosionlunar.ProcesadorLibros
             string columna = "valores";
             return _context.readQuerySimple(query, columna)[0];
         }
-        private void PopulateGrid(List<List<string>> prePartesInfo)
+        private int stringToInt(string valor)
         {
-            DynamicGrid.Children.Clear();
-            DynamicGrid.RowDefinitions.Clear();
-            DynamicGrid.ColumnDefinitions.Clear();
+            int elNumero = 0;
+            bool esNumero = Int32.TryParse(valor, out elNumero);
+            return elNumero;
+        }
 
-            // Define two columns for the Grid
-            DynamicGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            DynamicGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            DynamicGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            DynamicGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            // Define rows dynamically
-            for (int i = 0; i < prePartesInfo.Count; i++)
+        private void finalElection_Click(object sender, RoutedEventArgs e)
+        {
+            string messageToSend = PrePartesToUse.SelectedValue.ToString();
+            bool isANumber = false;
+            int theNumber = 0;
+            if(messageToSend == null) 
+            { 
+                MessageBox.Show("Número PreParte invalido.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Error); 
+            }
+            else
             {
-                // Add a new row definition
-                DynamicGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                isANumber = Int32.TryParse(messageToSend, out theNumber);
+            }
 
+            if(theNumber > 0)
+            {
+                PreParteProcesos2 newWindow = new PreParteProcesos2(theNumber);
+                newWindow.Show();
 
-                // Create the first TextBlock (NombreEmpresa)
-                TextBlock numeroParteTextBlock = new TextBlock
-                {
-                    Text = prePartesInfo[i][0],
-                    Margin = new Thickness(5)
-                };
-                Grid.SetRow(numeroParteTextBlock, i);
-                Grid.SetColumn(numeroParteTextBlock, 0);
-                // Create the first TextBlock (NombreEmpresa)
-                TextBlock IdEmpresaTextBlock = new TextBlock
-                {
-                    Text = prePartesInfo[i][1],
-                    Margin = new Thickness(5)
-                };
-                Grid.SetRow(IdEmpresaTextBlock, i);
-                Grid.SetColumn(IdEmpresaTextBlock, 1);
-
-                // Create the first TextBlock (NombreEmpresa)
-                TextBlock nombreEmpresaTextBlock = new TextBlock
-                {
-                    Text = prePartesInfo[i][2],
-                    Margin = new Thickness(5)
-                };
-                Grid.SetRow(nombreEmpresaTextBlock, i);
-                Grid.SetColumn(nombreEmpresaTextBlock, 2);
-
-                // Create the second TextBlock (ArchivosEmpresa)
-                TextBlock archivosEmpresaTextBlock = new TextBlock
-                {
-                    Text = prePartesInfo[i][3],
-                    Margin = new Thickness(5)
-                };
-                Grid.SetRow(archivosEmpresaTextBlock, i);
-                Grid.SetColumn(archivosEmpresaTextBlock, 3);
-
-                // Add the TextBlocks to the Grid
-                DynamicGrid.Children.Add(numeroParteTextBlock);
-                DynamicGrid.Children.Add(IdEmpresaTextBlock);
-                DynamicGrid.Children.Add(nombreEmpresaTextBlock);
-                DynamicGrid.Children.Add(archivosEmpresaTextBlock);
+                // Close the current window
+                this.Close();
+            }
+            else
+            {
+                MessageBox.Show("Error de número de PreParte.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             

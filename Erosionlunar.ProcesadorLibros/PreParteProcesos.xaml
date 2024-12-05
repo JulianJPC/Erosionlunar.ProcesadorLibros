@@ -24,15 +24,30 @@
             <RowDefinition Height="20"/>
             <!-- 0 -->
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <!-- 4 -->
             <RowDefinition Height="*" />
             <RowDefinition Height="10" />
         </Grid.RowDefinitions>
 
-        <!--<TextBlock Text="PrePartes:" Grid.Column="1" Grid.Row="1"></TextBlock>
-                <ComboBox x:Name="prePartesPendientes" Grid.Column="2" Grid.Row="1" ></ComboBox>-->
-        <Grid x:Name="DynamicGrid" Margin="10" Grid.Column="1" Grid.ColumnSpan="4" Grid.Row="1" >
-            <!-- Grid definitions will be created dynamically -->
-        </Grid>
+        <DataGrid Name="DG1" ItemsSource="{Binding}" AutoGenerateColumns="False" Grid.Column="1" Grid.ColumnSpan="4" Grid.Row="1" >
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Numero PreParte"  Binding="{Binding NumeroP}"/>
+                <DataGridTextColumn Header="Id Empresa" Binding="{Binding IdEmpresa}" />
+                <DataGridTextColumn Header="Nombre" Binding="{Binding NombreE}" />
+                <DataGridTemplateColumn  Header="Archivos">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ListBox ItemsSource="{Binding ArchivosPreP}" VerticalAlignment="Top" MaxHeight="100" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        <TextBlock Text="Elejir PreParte: " Grid.Column="1" Grid.Row="2"></TextBlock>
+        <ComboBox x:Name="PrePartesToUse" Grid.Column="2" Grid.Row="2"></ComboBox>
+        <Button x:Name="finalElection" Content="Siguiente" Grid.Column="4" Grid.Row="4" Click="finalElection_Click"></Button> 
     </Grid>
 </Window>
