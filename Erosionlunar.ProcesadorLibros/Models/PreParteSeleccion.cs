@@ -24,7 +24,11 @@ namespace Erosionlunar.ProcesadorLibros.Models
             idEmpresa = iE;
             nombreE = nE;
             ArchivosPreP = arch;
-            SelectedArchivo = ArchivosPreP[0];
+            if(ArchivosPreP.Count != 0)
+            {
+                SelectedArchivo = ArchivosPreP[0];
+            }
+            
         }
     }
 }

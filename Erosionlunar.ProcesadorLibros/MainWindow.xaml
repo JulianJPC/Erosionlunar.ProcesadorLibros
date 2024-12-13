@@ -21,12 +21,15 @@
             <RowDefinition Height="20"/>
             <!-- 0 -->
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
             <!-- 4 -->
+            
             <RowDefinition Height="*" />
             <RowDefinition Height="10" />
         </Grid.RowDefinitions>
 
         <Button x:Name="irAPreParteProceso" Content="Proceso PreParte" Grid.Column="2" Grid.Row="1" Click="irAPreParteProceso_Click" ></Button>
+        <Button x:Name="irAFormato" Content="Proceso Formato" Grid.Column="2" Grid.Row="2" Click="irAFormato_Click" ></Button>
     </Grid>
 
 </Window>

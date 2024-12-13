@@ -37,5 +37,22 @@ namespace Erosionlunar.ProcesadorLibros
             otherWindow.Show();
             this.Close(); // Close the current window if desired.
         }
+
+        private void irAFormato_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window is FormatoProceso)
+                {
+                    window.Focus(); // Bring the existing window to the front.
+                    return;
+                }
+            }
+
+            // If no instance exists, create and show a new one.
+            FormatoProceso otherWindow = new FormatoProceso();
+            otherWindow.Show();
+            this.Close(); // Close the current window if desired.
+        }
     }
 }

@@ -7,31 +7,56 @@
         mc:Ignorable="d"
                 Title="PrePartesProcesos2" Background="Gray" FontSize="18" 
         Height="450" Width="800">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+        <Grid x:Name="laOtraGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20"/>
+                <!-- 0 -->
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <!-- 2 -->
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20"/>
+                <!-- 0 -->
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <!-- 4 -->
+                <RowDefinition Height="*" />
+                <RowDefinition Height="10" />
+            </Grid.RowDefinitions>
+            <Button x:Name="volverSeleccion" Content="Volver" Grid.Column="1" Grid.Row="1" Click="volverSeleccion_Click"></Button>
+            <Button x:Name="sentToProceso" Content="Procesar" Grid.Column="4" Grid.Row="1" Click="sentToProceso_Click" ></Button>
+            <TextBlock x:Name="numeroPreParte" Grid.Column="1" Grid.Row="2"></TextBlock>
+            <DataGrid Name="DG1" ItemsSource="{Binding}" AutoGenerateColumns="False" Grid.Column="1" Grid.ColumnSpan="4" Grid.Row="3" CanUserAddRows="False" >
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Nombre Corto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding shortName}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                        <DataGridTemplateColumn.CellEditingTemplate>
+                            <DataTemplate>
+                                <ComboBox ItemsSource="{Binding shortNamesPosible}" 
+                              SelectedItem="{Binding shortName, UpdateSourceTrigger=PropertyChanged}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellEditingTemplate>
+                    </DataGridTemplateColumn>
 
-    <Grid x:Name="laOtraGrid">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="20"/>
-            <!-- 0 -->
-            <ColumnDefinition Width="auto"/>
-            <ColumnDefinition Width="auto"/>
-            <ColumnDefinition Width="auto"/>
-            <ColumnDefinition Width="auto"/>
-            <!-- 2 -->
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="20"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="20"/>
-            <!-- 0 -->
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <!-- 4 -->
-            <RowDefinition Height="*" />
-            <RowDefinition Height="10" />
-        </Grid.RowDefinitions>
-        <Button x:Name="volverSeleccion" Content="Volver" Grid.Column="1" Grid.Row="1" Click="volverSeleccion_Click"></Button>
-        <TextBlock x:Name="numeroPreParte" Grid.Column="1" Grid.Row="2"></TextBlock>
-    </Grid>
+                    <DataGridTextColumn Header="Mes" Binding="{Binding month}" />
+                    <DataGridTextColumn Header="Año" Binding="{Binding year}" />
+                    <DataGridTextColumn Header="Fracción" Binding="{Binding fraccion}" />
+                    <DataGridTextColumn Header="Terminacion" Binding="{Binding terminacion}" />
+                    <DataGridTextColumn Header="Path Inicial" Binding="{Binding pathInicial}" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </ScrollViewer>
 </Window>
