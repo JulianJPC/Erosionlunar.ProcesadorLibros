@@ -186,6 +186,16 @@ namespace Erosionlunar.ProcesadorLibros
             List<string> values = new List<string> { idArch, idMO, idL, fracc, folioI, folioF, asientoI, asientoF, elHash, rami, esActiva };
             _context.WriteQuery(query, parameters, values);
         }
+        public void insertFechaArchivo(string idArch, string fecha, string idL)
+        {
+            var idArchivoF = _context.readQuerySimple("SELECT MAX(idArchivosFechas) from ArchivosFechas;", "MAX(idArchivo)")[0];
+
+            string query = "INSERT INTO ArchivosFechas(idArchivosFechas, fecha, idArchivo, idLibro) VALUES(";
+            query += "@idArchF, @fecha, @idArchivo, @idLibro);";
+            List<string> parameters = new List<string> { "@idArchF", "@fecha", "@idArchivo", "@idLibro" };
+            List<string> values = new List<string> { idArchivoF, idArch, fecha, idL };
+            _context.WriteQuery(query, parameters, values);
+        }
 
         public List<List<string>> getFoliosAndAsientosF(string idLibro, string theDate, string theFraccion)
         {
@@ -287,6 +297,8 @@ namespace Erosionlunar.ProcesadorLibros
                     var lastId = (Int32.Parse(getLastIdArchivoI()) + 1).ToString();
                     var theHash = CalculateMD5(elFormulario.pathsFinal[indexOfFile]);
                     insertArchivo(lastId, "0", idLibro, libro[3], firstPageNumber, lastNumberPage, firstEntryNumber, lastEntry, theHash, "0", "1");
+                    var formatedFecha = DateTime.ParseExact(String.Join('/', "01", addCeroMonth(libro[1]), libro[2]), "yyyy-MM-dd", CultureInfo.InvariantCulture);
+                    insertFechaArchivo(lastId, formatedFecha.ToString("yyyy-MM-dd HH:mm:ss"), idLibro);
                 }
                 MainWindow newWindow = new MainWindow();
                 newWindow.Show();

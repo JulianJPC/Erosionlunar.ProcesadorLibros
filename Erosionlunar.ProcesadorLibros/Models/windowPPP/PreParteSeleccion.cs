@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Erosionlunar.ProcesadorLibros.Models
+namespace Erosionlunar.ProcesadorLibros.Models.windowPPP
 {
     public class PreParteSeleccion
     {
@@ -24,11 +24,11 @@ namespace Erosionlunar.ProcesadorLibros.Models
             idEmpresa = iE;
             nombreE = nE;
             ArchivosPreP = arch;
-            if(ArchivosPreP.Count != 0)
+            if (ArchivosPreP.Count != 0)
             {
                 SelectedArchivo = ArchivosPreP[0];
             }
-            
+
         }
     }
 }

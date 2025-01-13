@@ -19,6 +19,11 @@ namespace Erosionlunar.ProcesadorLibros.Abstract
         protected string pageNumberName;
         protected int qSpacesToTakeOut;
         protected Encoding openerEncod;
+        
+        
+        
+        /// ------------------- VIRTUAL
+        
         /// <summary>
         /// Default method to get a Date of a Libro file.
         /// </summary>
@@ -27,6 +32,75 @@ namespace Erosionlunar.ProcesadorLibros.Abstract
         /// Only returns the current Date.
         /// </remarks>
         public virtual DateTime getFecha(string pathF) { return DateTime.Now; }
+        /// <summary>
+        /// Default method to modify a libro file. At the end returns the last page number and last accounting entry.
+        /// </summary>
+        /// <param name="pageNumberF">First Page number.</param>
+        /// <param name="entryF">First accounting entry.</param>
+        /// <param name="pathF">File path of a Libro file.</param>
+        /// <param name="finalPathF">File path of the modify Libro file.</param>
+        /// <remarks>
+        /// Only returns an empty List<int>.
+        /// </remarks>
+        public virtual List<int> modFile(int pageNumberF, int entryF, string pathF, string finalPathF)
+        {
+            return new List<int>();
+        }
+        /// <summary>
+        /// Default method to make the name of a file.
+        /// </summary>
+        /// <param name="theDate">Period of the Libro.</param>
+        /// <param name="fraccion">Number of division of the libro.</param>
+        /// <param name="libroShortName">Short Name Libro.</param>
+        /// <param name="pathFile">File path of the Libro file.</param>
+        public virtual string makeNameFile(DateTime theDate, string fraccion, string libroShortName, string pathFile)
+        {
+            var month = addCeroMonth(theDate.Month.ToString());
+            var year = theDate.Year.ToString().Substring(2, 2);
+            var folderPath = Path.GetDirectoryName(pathFile);
+            var extension = Path.GetExtension(pathFile).ToLower();
+            var response = String.Join("\\", folderPath, libroShortName + month + year);
+            if (fraccion != "0")
+            {
+                response += $"P{fraccion}";
+            }
+            response += extension;
+            return response;
+        }
+        /// <summary>
+        /// Default method to set the list processRegex with only a Regex.
+        /// </summary>
+        /// <param name="rawRegex">Period of the Libro.</param>
+        public virtual void setProcessRegexFromString(List<string> rawRegex)
+        {
+            processRegex = new List<Regex>();
+            var newRegex = new Regex(rawRegex[0]);
+            processRegex.Add(newRegex);
+        }
+        /// <summary>
+        /// Default method to set information used in the process.
+        /// Sets pageNumberName and qSpacesToTakeOut.
+        /// </summary>
+        /// <param name="theList">The 0 index is the pageNumber Name. The 1 index is the qSpacesToTakeOut</param>
+        public virtual void setProcessInfo(List<string> theList)
+        {
+            pageNumberName = theList[0];
+            qSpacesToTakeOut = Int32.Parse(theList[1]);
+
+        }
+        /// <summary>
+        /// Default method to set openerEncod.
+        /// It uses encod as a number to get it in GetEncoding()
+        /// </summary>
+        /// <param name="encod">String of the number of index of the encoding</param>
+        public virtual void setEncoding(string encod)
+        {
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            openerEncod = Encoding.GetEncoding(Int32.Parse(encod));
+        }
+
+        /// ------------------- GET Libro Periodo
+        
         /// <summary>
         /// Generic method to get a Date of a Libro file. 
         /// The file must be a .txt.
@@ -114,29 +188,14 @@ namespace Erosionlunar.ProcesadorLibros.Abstract
             }
             return theLines;
         }
-        /// <summary>
-        /// Returns the MD5 hash of a file
-        /// </summary>
-        /// <param name="pathF">File path of a Libro file.</param>
-        private string CalculateMD5(string pathF)
-        {
-            using (var md5 = MD5.Create())
-            {
-                using (var stream = File.OpenRead(pathF))
-                {
-                    var hash = md5.ComputeHash(stream);
-                    return BitConverter.ToString(hash).Replace("-", "").ToUpperInvariant();
-                }
-            }
-        }
+
+        /// ------------------- Mod Libro Default
+
         /// <summary>
         /// Returns the line and page number, if it gets a match it changes the page number
         /// </summary>
         /// <param name="lineRaw">Line of the libro file.</param>
         /// <param name="lastPageNumber">Last page number used.</param>
-        /// <param name="theRegex">It matches the line that has the page number.</param>
-        /// <param name="qSpaces">Quantity of spaces to take out of the end of the line.</param>
-        /// <param name="numberName">The word that announce the page number.</param>
         /// <remarks>
         /// If it doesn't make a match it returns the same line and page number.
         /// </remarks>
@@ -155,14 +214,11 @@ namespace Erosionlunar.ProcesadorLibros.Abstract
             lineAndFol.Add(newPageNumber);
             return lineAndFol;
         }
-
         /// <summary>
         /// Takes a line and takes out characters from the end and adds a word and number insted.
         /// </summary>
         /// <param name="lineRaw">Line of the libro file.</param>
         /// <param name="pageNumber">Page number used.</param>
-        /// <param name="qTakenOut">Quantity of spaces to take out of the end of the line.</param>
-        /// <param name="numberName">The word that announce the page number.</param>
         /// <remarks>
         /// If the amount to take out is longer that the line it only returns the word before the page number and number.
         /// </remarks>
@@ -183,47 +239,12 @@ namespace Erosionlunar.ProcesadorLibros.Abstract
             newLine.Append(pageNumber);
             return newLine.ToString();
         }
-
-        /// <summary>
-        /// Default method to modify a libro file. At the end returns the last page number and last accounting entry.
-        /// </summary>
-        /// <param name="pageNumberF">First Page number.</param>
-        /// <param name="entryF">First accounting entry.</param>
-        /// <param name="pathF">File path of a Libro file.</param>
-        /// <param name="finalPathF">File path of the modify Libro file.</param>
-        /// <param name="theEncod">The encoding used to open the raw libro file.</param>
-        /// <param name="theRegex">The regex used in the process.</param>
-        /// <remarks>
-        /// Only returns an empty List<int>.
-        /// </remarks>
-        public virtual List<int> modFile(int pageNumberF, int entryF, string pathF, string finalPathF)
-        {
-            return new List<int>();
-        }
-
-        /// <summary>
-        /// Returns the number of a month given. If the number is only one digit it adds a cero before.
-        /// </summary>
-        /// <param name="theMonth">The number of the month.</param>
-        protected string addCeroMonth(string theMonth)
-        {
-            string response = theMonth;
-            if(response.Length == 1)
-            {
-                response = "0" + response;
-            }
-            return response;
-        }
         /// <summary>
         /// Generic method used to modify a libro file. Returns the last page number entry used.
         /// </summary>
-        /// <param name="qSpaces">Amount of spaces to take out of the end of a page number line.</param>
-        /// <param name="numberName">The word that announce the page number.</param>
         /// <param name="pathF">File path of a Libro file.</param>
         /// <param name="pathModF">File path of the modify Libro file.</param>
         /// <param name="pageNumberF">First Page number.</param>
-        /// <param name="theEncod">The encoding used to open the raw libro file.</param>
-        /// <param name="theRegex">The regex used in the process.</param>
         protected int modFastGeneric(int pageNumberF, string pathF, string pathModF)
         {
             var changingPageNumber = pageNumberF.ToString();
@@ -266,36 +287,36 @@ namespace Erosionlunar.ProcesadorLibros.Abstract
             File.Delete(pathF);
             return pageNumberL;
         }
-        public virtual string getNameFile(DateTime theDate, string fraccion, string nameFile, string pathFile)
+
+        /// ------------------- Auxiliary Functions
+
+        /// <summary>
+        /// Returns the MD5 hash of a file
+        /// </summary>
+        /// <param name="pathF">File path of a Libro file.</param>
+        private string CalculateMD5(string pathF)
         {
-            var month = addCeroMonth(theDate.Month.ToString());
-            var year = theDate.Year.ToString().Substring(2,2);
-            var folderPath = Path.GetDirectoryName(pathFile);
-            var extension = Path.GetExtension(pathFile).ToLower();
-            var response = String.Join("\\", folderPath, nameFile + month + year);
-            if(fraccion != "0")
+            using (var md5 = MD5.Create())
             {
-                response += $"P{fraccion}";
+                using (var stream = File.OpenRead(pathF))
+                {
+                    var hash = md5.ComputeHash(stream);
+                    return BitConverter.ToString(hash).Replace("-", "").ToUpperInvariant();
+                }
             }
-            response += extension;
+        }
+        /// <summary>
+        /// Returns the number of a month given. If the number is only one digit it adds a cero before.
+        /// </summary>
+        /// <param name="theMonth">The number of the month.</param>
+        protected string addCeroMonth(string theMonth)
+        {
+            string response = theMonth;
+            if (response.Length == 1)
+            {
+                response = "0" + response;
+            }
             return response;
-        }
-        public virtual void setProcessRegexFromString(List<string> rawRegex)
-        {
-            processRegex = new List<Regex>();
-            var newRegex = new Regex(rawRegex[0]);
-            processRegex.Add(newRegex);
-        }
-        public virtual void setProcessInfo(List<string> theList)
-        {
-            pageNumberName = theList[0];
-            qSpacesToTakeOut = Int32.Parse(theList[1]);
-            
-        }
-        public void setEncoding(string encod)
-        {
-            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-            openerEncod = Encoding.GetEncoding(Int32.Parse(encod));
         }
     }
 }
