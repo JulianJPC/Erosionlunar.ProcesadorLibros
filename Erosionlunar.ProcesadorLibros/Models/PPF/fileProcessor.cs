@@ -14,152 +14,69 @@ namespace Erosionlunar.ProcesadorLibros.Models.PPF
     public class fileProcessor
     {
         /// <summary>
-        /// Given the list of dates, Ids and fracciones calculates the order to process the libros. And returns this order a list<int>
+        /// Given a list of fileLibro it arrange it and return the same list but
+        /// in the correct order of process.
         /// </summary>
-        /// <param name="dates">List of Dates of a list of libros</param>
-        /// <param name="ids">List of ids of a list of libros</param>
-        /// <param name="fracciones">List of fracciones of a list of libros</param>
-        public List<int> getFinalOrderFiles(List<DateTime> dates, List<string> ids, List<string> fracciones)
+        /// <param name="theFiles">List of fileLibros</param>
+        public List<fileLibro> getFinalOrderFiles(List<fileLibro> theFiles)
         {
-            var amountDates = dates.Distinct().ToList().Count; //unique dates
-            var amountIds = ids.Distinct().ToList().Count;    // unique IdL
-            var orderLibros = numberOrderLibros(ids);  // gets List with the index of order of each Id libro, first is 0
-            var orderFechas = numberOrderFechas(dates);// gets List with the index of order of each Id libro, first is 0
-            var minFraccionArch = calculateMinFracciones(ids, dates, fracciones); // List with the minimum fraccion of each libro.
-            return calculateOrder(orderLibros, orderFechas, amountIds, amountDates, fracciones, minFraccionArch);
+            numberOrderLibros(theFiles);  // sets the order to process of libro of each fileLibro
+            numberOrderFechas(theFiles);// sets the order to process of date of each fileLibro
+            numberOrderScale(theFiles);// sets the order to process each fileLibro
+            return theFiles.OrderBy(f => f.orderScale).ToList();
         }
         /// <summary>
-        /// Given a list of strings it assign a number to each individual Id and then 
-        /// makes a list of the of the same size as the original with the assign number
-        /// of each Id
+        /// Given a list of fielLibros it assign a number to each individual Id and
+        /// and set the orderLibro value of each file libro to that number.
         /// </summary>
-        /// <param name="listIdL">List of Ids of a list of libros</param>
-        private List<int> numberOrderLibros(List<string> listIdL)
+        /// <param name="theFiles">List of fileLibros</param>
+        private void numberOrderLibros(List<fileLibro> theFiles)
         {
-            var response = new List<int>();
-            var uniquesIds = listIdL.Distinct().ToList();
-            for (int i = 0; i < listIdL.Count; i++)
+            var listIds = new List<string>();
+            foreach(fileLibro oneFile in theFiles)
             {
-                response.Add(uniquesIds.IndexOf(listIdL[i]));
-            }
-            return response;
-        }
-        /// <summary>
-        /// Given a list of DateTime it assign a number to each individual Date in chronological order and then 
-        /// makes a list of the of the same size as the original with the assign number
-        /// of each Id
-        /// </summary>
-        /// <param name="dates">List of dates of a list of libros</param>
-        private List<int> numberOrderFechas(List<DateTime> dates)
-        {
-            var response = new List<int>();
-            var orderedDate = dates.Distinct().ToList().OrderByDescending(date => date).ToList();
-            for (int i = 0; i < dates.Count; i++)
-            {
-                response.Add(orderedDate.IndexOf(dates[i]));
-            }
-            return response;
-        }
-        /// <summary>
-        /// Given a list of Ids, Dates and fracciones calculates a list of the minimum number of fraccion
-        /// corresponding with each fraccion and the returns that list.
-        /// </summary>
-        /// <param name="dates">List of Dates of a list of libros</param>
-        /// <param name="ids">List of ids of a list of libros</param>
-        /// <param name="fracciones">List of fracciones of a list of libros</param>
-        private List<string> calculateMinFracciones(List<string> Ids, List<DateTime> dates, List<string> fraciones)
-        {
-            var indexesLibrosSame = new List<List<int>>();
-            var response = new List<string>();
-            for (int i = 0; i < Ids.Count; i++)
-            {
-                var listIndexSameIandD = searchIndexesDateAndIdL(Ids[i], dates[i], Ids, dates);
-                indexesLibrosSame.Add(listIndexSameIandD);
-            }
-
-            foreach (List<int> oneListIndex in indexesLibrosSame)
-            {
-                response.Add(searchLowerFraccionOfIndexes(oneListIndex, fraciones));
-            }
-            return response;
-        }
-        /// <summary>
-        /// Given a list of Ids, list of Dates, a Date amd an Id, it makes a list with the indexes that have that same
-        /// Id and Date in the list and returns it
-        /// </summary>
-        /// <param name="listDates">List of Dates of a list of libros</param>
-        /// <param name="listIdL">List of ids of a list of libros</param>
-        /// <param name="idL">A Id of libro</param>
-        /// <param name="date">A date of libro</param>
-        private List<int> searchIndexesDateAndIdL(string idL, DateTime date, List<string> listIdL, List<DateTime> listDates)
-        {
-            var response = new List<int>();
-            for(int i = 0; i < listIdL.Count; i++)
-            {
-                if(listIdL[i] == idL && listDates[i] == date)
+                if (!listIds.Contains(oneFile.id))
                 {
-                    response.Add(i);
+                    listIds.Add(oneFile.id);
+                }
+                oneFile.orderLibro = listIds.IndexOf(oneFile.id);
+            }
+        }
+        /// <summary>
+        /// Given a list of fielLibros it calculates the orderScale value by making a scale
+        /// with the orderLibro, fraccion and orderDate values.
+        /// </summary>
+        /// <param name="theFiles">List of fileLibros</param>
+        private void numberOrderScale(List<fileLibro> theFiles)
+        {
+            foreach(fileLibro oneFile in theFiles)
+            {
+                var scaleId = oneFile.orderLibro * 1000000;
+                var scaleFraccion = Int32.Parse(oneFile.fraccion) * 10000;
+                var scaleDate = oneFile.orderDate * 10;
+                oneFile.orderScale = scaleId + scaleFraccion + scaleDate;
+            }
+        }
+        /// <summary>
+        /// Given a list of fielLibros it assign a number to each individual date and
+        /// and set the orderDate value of each file libro to that number.
+        /// </summary>
+        /// <param name="theFiles">List of fileLibros</param>
+        private void numberOrderFechas(List<fileLibro> theFiles)
+        {
+            var listDates = new List<DateTime>();
+            foreach(fileLibro oneFile in theFiles)
+            {
+                if (!listDates.Contains(oneFile.date))
+                {
+                    listDates.Add(oneFile.date);
                 }
             }
-            return response;
-        }
-        /// <summary>
-        /// Given a list of the indexes that have same Date and IdL, searches in the list of Fracciones
-        /// with those indexes and chooses the index of minimum value.
-        /// </summary>
-        /// <param name="indexes">List of indexes that have same Date and Id libro.</param>
-        /// <param name="listFracciones">List of fracciones of libros</param>
-        private string searchLowerFraccionOfIndexes(List<int> indexes, List<string> listFracciones)
-        {
-            var response = 999;
-            foreach(int i in indexes)
+            listDates = listDates.OrderByDescending(date => date).ToList();
+            foreach(fileLibro oneFile in theFiles)
             {
-                if (Int32.Parse(listFracciones[i]) < response)
-                {
-                    response = Int32.Parse(listFracciones[i]);
-                }
+                oneFile.orderDate = listDates.IndexOf(oneFile.date);
             }
-            return response.ToString();
-        }
-        /// <summary>
-        /// Given a list of the order of the ids Libros, other list of the order of the dates, the amount of Ids Libros,
-        /// the amount of dates, a list of fracciones and a list of the minimum fracciones, calculte a default order of
-        /// wich the libros will be processed. Puts that order in a list and returns it
-        /// </summary>
-        /// <param name="ordersLibros">List of the order to process each book.</param>
-        /// <param name="ordersDates">List of the order to process each date.</param>
-        /// <param name="amountIds">How many unique ids there are.</param>
-        /// <param name="amountDates">How many unique dates there are.</param>
-        /// <param name="fracciones">List of fracciones of libros.</param>
-        /// <param name="amountDates">List of minimun of each fraccion of a date and id libro.</param>
-        private List<int> calculateOrder(List<int> ordersLibros, List<int> ordersDates, int amountIds, int amountDates, List<string> fracciones, List<string> minListFracciones)
-        {
-            var response = new List<int>();
-            var orderInScale = new List<int>();
-            var levelsScale = 0;
-            for (int i = 0; i < ordersLibros.Count; i++)
-            {
-                var level = (ordersLibros.Count() + ordersDates.Count() + fracciones.Count) * levelsScale;
-                var IdsOrder = ordersLibros[i];
-                var dateOrder = amountIds + ordersDates[i];
-                int fraccionOrder = amountIds + amountDates;
-                if (fracciones[i] == "0")
-                {
-                    fraccionOrder += 1;
-                }
-                else
-                {
-                    fraccionOrder += Int32.Parse(fracciones[i]) - Int32.Parse(minListFracciones[i]) + 1;
-                }
-                orderInScale.Add(IdsOrder + dateOrder + fraccionOrder + level);
-                levelsScale++;
-            }
-            var scaleMinToMax = orderInScale.OrderByDescending(order => order).ToList();
-            foreach (int oneOrder in orderInScale)
-            {
-                response.Add(scaleMinToMax.IndexOf(oneOrder) + 1);
-            }
-            return response;
         }
         /// <summary>
         /// Opens the path given and adds each line to a list the amount of times also given 
@@ -204,7 +121,12 @@ namespace Erosionlunar.ProcesadorLibros.Models.PPF
             }
             return lasLineas;
         }
-
+        /// <summary>
+        /// Given a path to a file and the amount of lines to take out of that file it
+        /// opens it reads it and takes out the lines and returns them.
+        /// </summary>
+        /// <param name="amountLines">Number of lines to add to the list.</param>
+        /// <param name="pathFile">Path of the file to open.</param>
         public List<string> getLineas(string pathFile, int amountLines)
         {
             var response = new List<string>();

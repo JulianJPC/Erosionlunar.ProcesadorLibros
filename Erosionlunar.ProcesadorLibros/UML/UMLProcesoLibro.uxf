@@ -1,15 +1,773 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <diagram program="umlet" version="15.1">
-  <zoom_level>10</zoom_level>
+  <zoom_level>8</zoom_level>
   <element>
-    <id>UMLSpecialState</id>
+    <id>UMLClass</id>
     <coordinates>
-      <x>180</x>
-      <y>80</y>
-      <w>20</w>
-      <h>20</h>
+      <x>0</x>
+      <y>384</y>
+      <w>208</w>
+      <h>296</h>
     </coordinates>
-    <panel_attributes>type=initial</panel_attributes>
+    <panel_attributes>_ABSManipulador_
+--
+-processRegex 
+-pageNumberName
+-qSpacesToTakeOut
+-openerEncod
+-
++getFecha()
++modFile()
++makeNameFile()
++setProcessRegexFromString()
++setProcessInfo()
++setEncoding()
+
++modFastGeneric()
+++modLinePageNumber()
++++changePageNumberLine()
+
++getDateTimeGeneric()
+++getLines()
++getDateTimeGenericPDF()
+
++addCeroMonth()
+</panel_attributes>
     <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>560</x>
+      <y>456</y>
+      <w>152</w>
+      <h>232</h>
+    </coordinates>
+    <panel_attributes>_Libro_
+--
+-idLibro
+-nombreL
+-nombreArchivoL
+-codificacion
+-theManipulator
+-regexNombreLibro
+-
++calculateNombreFile
++getFecha()
++setProcessRegexString()
++setProcessInfo()
++getManipulator()
++proccesLibro()
+
++checkLines()
++setRegexNombreLibro()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>816</x>
+      <y>248</y>
+      <w>200</w>
+      <h>512</h>
+    </coordinates>
+    <panel_attributes>_PreParteFormulario_
+--
+-numeroPreParte
+-idEmpresa
+-inicioE
+-losLibros
+-startingFiles
+-finalFiles
+-Errores
+-
++addError()
+
++createElementos()
++updateFormulario
++getLibroFromNameA()
+
++setBasicPreParte()
++setLibros()
++setStartingFiles()
++setBasicInfoProcess()
++setStartingFiles()
+++getIdLPosibles()
+++getFechasPosibles()
++setBasicInfoProcess()
++setPathsFinales()
++getQueryFolio()
++IsPrevious()
++getPreviousNumbers()
++getLibros()
++getIdLibroFromLibros()
++getNumberFiles()
++isFileStartingMonth()
++getIndexIdL()
++proccessOneLibro()
++getHashFile()
++getIdLibroFile()
++getFraccionFile()
++setLastNumbers()
++getDateFile()
++CalculateMD5()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>760</x>
+      <y>840</y>
+      <w>104</w>
+      <h>192</h>
+    </coordinates>
+    <panel_attributes>_fileInfoGroup_
+--
+-thePath
+-thePathFinal
+-date
+-id
+-fraccion
+-orderLibro
+-orderDate
+-orderScale
+-pageNumberS
+-pageNumberE
+-entryNumberS
+-entryNumberE</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>904</x>
+      <y>840</y>
+      <w>192</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>_FileProcessor_
+--
++getFinalOrderFiles()
+++numberOrderLibros()
+++numberOrderFechas()
+
++getLineas()
+++getLineasTXT()
+++getLineasPDF()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>200</x>
+      <y>488</y>
+      <w>112</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;20.0;120.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>704</x>
+      <y>544</y>
+      <w>128</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>
+m1=1..n
+m2=1</panel_attributes>
+    <additional_attributes>10.0;20.0;140.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>832</x>
+      <y>752</y>
+      <w>40</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1..n
+m2=1</panel_attributes>
+    <additional_attributes>10.0;110.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>920</x>
+      <y>752</y>
+      <w>40</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1..n</panel_attributes>
+    <additional_attributes>10.0;110.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>312</x>
+      <y>368</y>
+      <w>168</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>_Manipulador1_1_
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>312</x>
+      <y>456</y>
+      <w>168</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>_Manipulador1_2_
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>312</x>
+      <y>544</y>
+      <w>168</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>_Manipulador1_3_
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>480</x>
+      <y>488</y>
+      <w>96</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;20.0;100.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>384</x>
+      <y>608</y>
+      <w>24</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>296</x>
+      <y>344</y>
+      <w>192</w>
+      <h>312</h>
+    </coordinates>
+    <panel_attributes>
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1768</x>
+      <y>864</y>
+      <w>136</w>
+      <h>176</h>
+    </coordinates>
+    <panel_attributes>_PreParteProcesos_
+--
+-_context
+-pathProcesos
+-
++getPathProcesos()
++getPrePartesSinParte()
++getArchivosPrePartes()
+
++createListPPS()
+++crearPPS()
++++stringToInt()
+
++finalElection_Click()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1752</x>
+      <y>632</y>
+      <w>184</w>
+      <h>112</h>
+    </coordinates>
+    <panel_attributes>_DBConector_
+--
+-conexionDB
+-
++Dispose()
++WriteQuery()
++readQuerySimple()
++readQueryList()
++ExecuteQueriesWithTransaction()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1800</x>
+      <y>736</y>
+      <w>32</w>
+      <h>144</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;160.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1992</x>
+      <y>984</y>
+      <w>112</w>
+      <h>96</h>
+    </coordinates>
+    <panel_attributes>_PreParteSeleccion_
+--
+-numeroP
+-idEmpresa
+-nombreE
+-SelectedArchivo
+-ArchivosPreP</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1896</x>
+      <y>1008</y>
+      <w>112</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1..n</panel_attributes>
+    <additional_attributes>10.0;10.0;120.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1240</x>
+      <y>440</y>
+      <w>168</w>
+      <h>336</h>
+    </coordinates>
+    <panel_attributes>_PreParteProcesos2_
+--
+-_context
+-pathProcesos
+-elFormulario
+-
++getPathProcesos()
++getLastIdArchivoI()
++getLastIdFechaArchivo()
++getLibrosEmpresa()
++getRegexLibros()
++getprocessRegexLibro()
++getprocessInfoLibro()
++getInicioE()
++getIdEmpresaPreParte()
++createQArchivo()
++createQFechaArchivo()
++insertFechaArchivo()
++getFoliosAndAsientosF()
+
++turnIntoLibros()
++getArchivosPreParte()
++AskForNumber()
++sentToProceso_Click()
++volverSeleccion_Click()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1568</x>
+      <y>464</y>
+      <w>104</w>
+      <h>176</h>
+    </coordinates>
+    <panel_attributes>_Archivo_
+--
+-idArchivo
+-idMO
+-idLibro
+-fraccion
+-folioI
+-folioF
+-asientoI
+-asientoF
+-theHash
+-ramificacion
+-isActive</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1400</x>
+      <y>520</y>
+      <w>184</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1..n</panel_attributes>
+    <additional_attributes>10.0;10.0;210.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1008</x>
+      <y>512</y>
+      <w>248</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;290.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1080</x>
+      <y>584</y>
+      <w>96</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>_PreParteBasic_
+--
+-idPreParte
+-idEmpresa
+-startExcercice</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1168</x>
+      <y>600</y>
+      <w>88</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1008</x>
+      <y>600</y>
+      <w>88</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1072</x>
+      <y>672</y>
+      <w>104</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>_basicInfoProcess_
+--
+-libroRegex
+-rawProcessRegex
+-infosForProcess</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1168</x>
+      <y>688</y>
+      <w>88</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1008</x>
+      <y>688</y>
+      <w>80</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1568</x>
+      <y>648</y>
+      <w>104</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>_FechaArchivo_
+--
+-id
+-fecha
+-idLibro
+-idArchivo</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1400</x>
+      <y>672</y>
+      <w>184</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1..n</panel_attributes>
+    <additional_attributes>10.0;10.0;210.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1400</x>
+      <y>728</y>
+      <w>368</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;440.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1568</x>
+      <y>384</y>
+      <w>72</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>_QueryDB_
+--
+-query
+-parameters
+-values</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1400</x>
+      <y>440</y>
+      <w>184</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1..n</panel_attributes>
+    <additional_attributes>10.0;10.0;210.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1568</x>
+      <y>752</y>
+      <w>120</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>_numberInput_
+--
++OkButton_Click()
++CancelButton_Click()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1400</x>
+      <y>752</y>
+      <w>184</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1..n</panel_attributes>
+    <additional_attributes>10.0;10.0;210.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2000</x>
+      <y>280</y>
+      <w>168</w>
+      <h>224</h>
+    </coordinates>
+    <panel_attributes>_FormatoProceso_
+--
+-_context
+-pathProcesos
+-
++getArchivosWithoutProcess()
++getPathProcesos()
++getDirsVisspool()
++getRegexVisspool()
++getNombreLibro()
++updateHashArchivo()
+
++createElementos()
++getFilesToProcess()
+++createArchivos()
+++CalculateMD5()
++volverSeleccion_Click()
++sentToProceso_Click()</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2304</x>
+      <y>232</y>
+      <w>104</w>
+      <h>144</h>
+    </coordinates>
+    <panel_attributes>_Archivo_
+--
+-idArchivo
+-idLibro
+-fraccion
+-folioI
+-folioF
+-asientoI
+-asientoF
+-theHash
+-path</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1328</x>
+      <y>856</y>
+      <w>120</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>_elementoFormulario_
+--
+-shortsNamePosibles
+-shortName
+-month
+-year
+-fraccion
+-terminacion
+-pathInicial</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1384</x>
+      <y>768</y>
+      <w>40</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1..n
+m2=1</panel_attributes>
+    <additional_attributes>10.0;110.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2304</x>
+      <y>416</y>
+      <w>120</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>_elementoFormato_
+--
+-idArchivo
+-idLibro
+-fCantidad
+-fraccion
+-path
+-IsSelected</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1928</x>
+      <y>496</y>
+      <w>144</w>
+      <h>176</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;190.0;150.0;190.0;150.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2160</x>
+      <y>304</y>
+      <w>160</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1..n</panel_attributes>
+    <additional_attributes>10.0;10.0;180.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2160</x>
+      <y>440</y>
+      <w>160</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1..n</panel_attributes>
+    <additional_attributes>10.0;10.0;180.0;10.0</additional_attributes>
   </element>
 </diagram>

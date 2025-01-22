@@ -1,5 +1,5 @@
 ﻿using Erosionlunar.ProcesadorLibros.DB;
-using Erosionlunar.ProcesadorLibros.Models;
+using Erosionlunar.ProcesadorLibros.Models.windowF;
 using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
@@ -31,57 +31,102 @@ namespace Erosionlunar.ProcesadorLibros
         {
             _context = new DBConector();
             pathProcesos = getPathProcesos();
-            var infoReadyToProcess = getFilesToProcess();
-            var elements = getElementos(infoReadyToProcess);
+            var infoWithoutProcess = getArchivosWithoutProcess();
+            var infoReadyToProcess = getFilesToProcess(infoWithoutProcess);
+            var elements = createElementos(infoReadyToProcess);
             InitializeComponent();
             DG1.ItemsSource = elements;
             TipoFormato.Items.Add("Visspool");
             TipoFormato.SelectedIndex = 0;
         }
-
-        private List<elementoFormato> getElementos(List<List<string>> theInfo)
+        /// <summary>
+        /// Given a list of Archivos creates a list elementoFormato with the same information and returns it.
+        /// </summary>
+        /// <param name="theInfo">List of Archivos full of values.</param>
+        private List<elementoFormato> createElementos(List<Archivo> theInfo)
         {
             var response = new List<elementoFormato>();
             foreach(var info in theInfo)
             {
                 var oneElemento = new elementoFormato();
                 oneElemento.IsSelected = true;
-                oneElemento.IdArchivo = info[0];
-                oneElemento.IdLibro = info[1];
-                oneElemento.fCantidad = (Int32.Parse(info[4]) - Int32.Parse(info[3]) + 1).ToString();
-                oneElemento.fraccion = info[5];
-                if(info.Count > 6)
-                {
-                    oneElemento.path = info[6];
-                }
+                oneElemento.IdArchivo = info.id;
+                oneElemento.IdLibro = info.idLibro;
+                oneElemento.fCantidad = (Int32.Parse(info.pageNumberE) - Int32.Parse(info.pageNumberS) + 1).ToString();
+                oneElemento.fraccion = info.fraccion;
+                oneElemento.path = info.pathArchivo;
                 response.Add(oneElemento);
             }
             return response;
         }
-        private List<List<string>> getFilesToProcess()
+        /// <summary>
+        /// Gets the files to process. First it gets from the DB the files without process
+        /// then for every folder in pathProcesos looks for the folder txt and if it finds it
+        /// compares the hash of those files to the hashes of the files asked in the DB.
+        /// Then adds the list of unprocess files the paths. 
+        /// </summary>
+        private List<Archivo> getFilesToProcess(List<List<string>> rawArchivos)
         {
-            var infoWithoutProcess = getArchivosWithoutProcess();
+            var theArchivosWithoutProcess = createArchivos(rawArchivos);
+            var theArchivosToFormat = new List<Archivo>();
             var foldersInProcess = Directory.GetDirectories(pathProcesos);
-            for(int i = 0; i < infoWithoutProcess.Count; i++)
+            var pathsWithTXT = new List<string>();
+            var pathsToFiles = new List<string>();
+            var pathsToFilesMD5 = new List<string>();
+            foreach (var folder in foldersInProcess)
             {
-                foreach(var folder in foldersInProcess)
+                var pathWithTxt = System.IO.Path.Combine(folder, "txt");
+                if (Directory.Exists(pathWithTxt))
                 {
-                    var pathWithTxt = System.IO.Path.Combine(folder, "txt");
-                    if (Directory.Exists(pathWithTxt))
-                    {
-                        var filesInTxt = Directory.GetFiles(pathWithTxt);
-                        foreach (var file in filesInTxt)
-                        {
-                            if(CalculateMD5(file) == infoWithoutProcess[i][2])
-                            {
-                                infoWithoutProcess[i].Add(file);
-                            }
-                        }
-                    }
+                    pathsWithTXT.Add(pathWithTxt);
                 }
             }
-            return infoWithoutProcess;
+            foreach(string onePath in pathsWithTXT)
+            {
+                var filesInTxt = Directory.GetFiles(onePath);
+                pathsToFiles.AddRange(filesInTxt);
+            }
+            foreach(string oneFile in pathsToFiles)
+            {
+                pathsToFilesMD5.Add(CalculateMD5(oneFile));
+                
+            }
+            foreach(Archivo oneArchivo in theArchivosWithoutProcess)
+            {
+                var ifHasHash = pathsToFilesMD5.Contains(oneArchivo.hashA);
+                if (ifHasHash)
+                {
+                    var indexHash = pathsToFilesMD5.IndexOf(oneArchivo.hashA);
+                    oneArchivo.pathArchivo = pathsToFiles[indexHash];
+                    theArchivosToFormat.Add(oneArchivo);
+                }
+            }
+            return theArchivosToFormat;
         }
+        /// <summary>
+        /// Given the raw information from the DB creates a list of Archivos.
+        /// </summary>
+        /// <param name="rawArchivos">String of list of Archivos from the DB</param>
+        private List<Archivo> createArchivos(List<List<string>> rawArchivos)
+        {
+            var response = new List<Archivo>();
+            foreach(List<string> oneRawArchivo in rawArchivos)
+            {
+                var newArchivo = new Archivo();
+                newArchivo.id = oneRawArchivo[0];
+                newArchivo.idLibro = oneRawArchivo[1];
+                newArchivo.hashA = oneRawArchivo[2];
+                newArchivo.pageNumberS = oneRawArchivo[3];
+                newArchivo.pageNumberE = oneRawArchivo[4];
+                newArchivo.fraccion = oneRawArchivo[5];
+                response.Add(newArchivo);
+            }
+            return response;
+        }
+        /// <summary>
+        /// Given a string of a path of a file it calculates the MD5 hash of it and returns it.
+        /// </summary>
+        /// <param name="filename">String with the value of a path to a file in disk.</param>
         private string CalculateMD5(string filename)
         {
             using (var md5 = MD5.Create())
@@ -93,24 +138,37 @@ namespace Erosionlunar.ProcesadorLibros
                 }
             }
         }
+        /// <summary>
+        /// Gets from the DB the archivos with idMO = 0 and with a hash.
+        /// </summary>
         private List<List<string>> getArchivosWithoutProcess()
         {
             string query = "SELECT IdArchivo, IdLibro, HashA, folioI, folioF, fraccion FROM Archivos WHERE IdMedioOptico = 0 AND HashA != '0';";
             List<string> columns = new List<string> { "IdArchivo", "IdLibro", "HashA", "folioI", "folioF", "fraccion" };
             return _context.readQueryList(query, columns);
         }
+        /// <summary>
+        /// Gets the path where procesos are stored in the disk.
+        /// </summary>
         private string getPathProcesos()
         {
             string query = "SELECT valores from MainFrame WHERE idMainFrame = 1;";
             string columna = "valores";
             return _context.readQuerySimple(query, columna)[0];
         }
+        /// <summary>
+        /// Gets the path where the visspool files are stored.
+        /// </summary>
         private List<string> getDirsVisspool()
         {
             string query = "SELECT valores from MainFrame WHERE idMainFrame BETWEEN 5 AND 12;";
             string columna = "valores";
             return _context.readQuerySimple(query, columna);
         }
+        /// <summary>
+        /// Gets the Regex used to create visspool from the idLibro given.
+        /// </summary>
+        /// <param name="idLibro">String of an id Libro.</param>
         private Regex getRegexVisspool(string idLibro)
         {
             string query = "SELECT Informacion from informacionlibro WHERE idLibro = @elID AND IdTipoInformacion = 3;";
@@ -125,6 +183,10 @@ namespace Erosionlunar.ProcesadorLibros
             }
             return response;
         }
+        /// <summary>
+        /// Gets the name of a libro from its id.
+        /// </summary>
+        /// <param name="idLibro">String of an id Libro.</param>
         private string getNombreLibro(string idLibro)
         {
             string query = "SELECT nombreL from Libros WHERE idLibro = @elID;";
@@ -133,6 +195,11 @@ namespace Erosionlunar.ProcesadorLibros
             List<string> values = new List<string> { idLibro };
             return _context.readQuerySimple(query, parameters, values, column)[0];
         }
+        /// <summary>
+        /// Given the id of am Archivo it updates its hash with a given hash.
+        /// </summary>
+        /// <param name="idArch">String of an id Archivo.</param>
+        /// <param name="newHash">String of a hash.</param>
         public void updateHashArchivo(string idArch, string newHash)
         {
             string query = "Update Archivos SET hashA = @newHash  WHERE IdArchivo = @idArch";
@@ -149,14 +216,26 @@ namespace Erosionlunar.ProcesadorLibros
             // Close the current window
             this.Close();
         }
-
+        /// <summary>
+        /// Starts formating the files first takes the choosed format
+        /// and then if the elementos where selected it formats them.
+        /// At the end it updates the BD.
+        /// </summary>
         private void sentToProceso_Click(object sender, RoutedEventArgs e)
         {
-            if(TipoFormato.Text == "Visspool")
+            var selectedElementos = new List<elementoFormato>();
+            foreach (elementoFormato oneElement in DG1.ItemsSource)
+            {
+                if (oneElement.IsSelected)
+                {
+                    selectedElementos.Add(oneElement);
+                }
+            }
+            if (TipoFormato.Text == "Visspool")
             {
                 var lasDir = getDirsVisspool();
                 var visspoolizador = new VisspoolControl.VisspoolControl(lasDir);
-                foreach(elementoFormato oneElement in DG1.ItemsSource)
+                foreach(elementoFormato oneElement in selectedElementos)
                 {
                     var theRegex = getRegexVisspool(oneElement.IdLibro);
                     var nombreLibro = getNombreLibro(oneElement.IdLibro);

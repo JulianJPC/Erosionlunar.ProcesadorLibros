@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Erosionlunar.ProcesadorLibros.Models
+namespace Erosionlunar.ProcesadorLibros.Models.windowF
 {
     public class elementoFormato
     {

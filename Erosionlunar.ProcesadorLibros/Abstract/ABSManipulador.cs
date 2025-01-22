@@ -290,21 +290,7 @@ namespace Erosionlunar.ProcesadorLibros.Abstract
 
         /// ------------------- Auxiliary Functions
 
-        /// <summary>
-        /// Returns the MD5 hash of a file
-        /// </summary>
-        /// <param name="pathF">File path of a Libro file.</param>
-        private string CalculateMD5(string pathF)
-        {
-            using (var md5 = MD5.Create())
-            {
-                using (var stream = File.OpenRead(pathF))
-                {
-                    var hash = md5.ComputeHash(stream);
-                    return BitConverter.ToString(hash).Replace("-", "").ToUpperInvariant();
-                }
-            }
-        }
+        
         /// <summary>
         /// Returns the number of a month given. If the number is only one digit it adds a cero before.
         /// </summary>

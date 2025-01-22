@@ -1,12 +1,16 @@
 ﻿using Erosionlunar.ProcesadorLibros.Models.PPF;
+using Erosionlunar.ProcesadorLibros.Models.windowPPP2;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Security.RightsManagement;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -24,21 +28,20 @@ namespace Erosionlunar.ProcesadorLibros.Models
         private fileProcessor theFileProcessor;
         private List<string> Errores;
 
-        private fileInfoGroup startingFiles;
-        private fileInfoGroup finalFiles;
+        private List<fileLibro> startingFiles;
+        private List<fileLibro> finalFiles;
 
         public string numeroP => numeroPreParte;
         public string idEmp => idEmpresa;
         public string inicioEjercicio => inicioE;
-        public List<string> pathsFinal => finalFiles.Paths;
         public List<string> theErrors => Errores;
         
 
         public PreParteFormulario()
         {
             Errores = new List<string>();
-            startingFiles = new fileInfoGroup();
-            finalFiles = new fileInfoGroup();
+            startingFiles = new List<fileLibro>();
+            finalFiles = new List<fileLibro>();
             theFileProcessor = new fileProcessor();
         }
         /// <summary>
@@ -62,16 +65,16 @@ namespace Erosionlunar.ProcesadorLibros.Models
         public List<elementoFormulario> createElementos()
         {
             var theElementos = new List<elementoFormulario>();
-            for(int i = 0; i < startingFiles.Paths.Count; i++)
+            for(int i = 0; i < startingFiles.Count; i++)
             {
                 var oneElemento = new elementoFormulario();
                 oneElemento.shortNamesPosible = new List<string>();
                 oneElemento.fraccion = 0;
-                oneElemento.terminacion = Path.GetExtension(startingFiles.Paths[i]).ToLower();
-                oneElemento.month = startingFiles.Dates[i].Month;
-                oneElemento.year = startingFiles.Dates[i].Year;
-                oneElemento.pathInicial = startingFiles.Paths[i];
-                oneElemento.shortName = losLibros[getIndexIdL(startingFiles.Ids[i])].nombreAL;
+                oneElemento.terminacion = Path.GetExtension(startingFiles[i].thePath).ToLower();
+                oneElemento.month = startingFiles[i].date.Month;
+                oneElemento.year = startingFiles[i].date.Year;
+                oneElemento.pathInicial = startingFiles[i].thePath;
+                oneElemento.shortName = losLibros[getIndexIdL(startingFiles[i].id)].nombreAL;
                 foreach(Libro oneLibro in losLibros)
                 {
                     oneElemento.shortNamesPosible.Add(oneLibro.nombreAL);
@@ -81,58 +84,47 @@ namespace Erosionlunar.ProcesadorLibros.Models
             return theElementos;
         }
         /// <summary>
-        /// Set the fechasFilesFinales, fraccionesFinales and idLibrosFinalse with the giving parameters. Also it gets the order of the files.
+        /// Takes elementosFormulario and extracts the information in it to create the finalFiles.
         /// </summary>
-        /// <param name="theFracciones">List of fracciones of libros</param>
-        /// <param name="losIdL">List of Id libros</param>
-        /// <param name="theDates">List of dates of libros</param>
-        /// <remarks>
-        /// Used in PreParteProcesos2.
-        /// </remarks>
-        public void updateFormulario(List<string> theFracciones, List<string> losIdL, List<DateTime> theDates)
+        /// <param name="elementosFormulario">List of elementoFormularios</param>
+        public void updateFormulario(IEnumerable elementosFormulario)
         {
-            finalFiles.Dates = theDates;
-            finalFiles.Fracciones = theFracciones;
-            finalFiles.Ids = losIdL;
-            finalFiles.Orders = theFileProcessor.getFinalOrderFiles(finalFiles.Dates, finalFiles.Ids, finalFiles.Fracciones);
+            foreach (elementoFormulario item in elementosFormulario)
+            {
+                var newFile = new fileLibro();
+                var elIdLibro = getLibroFromNameA(item.shortName);
+                newFile.id = elIdLibro;
+                newFile.date = DateTime.ParseExact(String.Join('/', "01", addCeroMonth(item.month.ToString()), item.year.ToString()), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                newFile.fraccion = item.fraccion.ToString();
+                finalFiles.Add(newFile);
+            }
+            finalFiles = theFileProcessor.getFinalOrderFiles(finalFiles);
+            setPathsFinales();
         }
-
-
         /// <summary>
-        /// Giving the name of a libro it returns the Id Libro that correspond.
+        /// Given the index, first page number and first entry number it process the file and return the last page number and last entry number.
         /// </summary>
-        /// <param name="name">Name of a libro.</param>
-        public string getLibroFromNameA(string name)
+        /// <param name="indexToProcess">Number of the index of file to process in the startingFilesPaths list.</param>
+        /// <param name="firstPageNumber">First page number to use</param>
+        /// <param name="firstEntryNumber">First entry number to use</param>
+        public List<int> proccessOneLibro(int indexToProcess, int firstPageNumber, int firstEntryNumber)
         {
-            var response = "";
+            var thefoliosAndEntries = new List<int>();
             foreach (Libro unLibro in losLibros)
             {
-                if(unLibro.nombreAL == name)
+                if (finalFiles[indexToProcess].id == unLibro.idL)
                 {
-                    response = unLibro.idL; break;
+                    int pageNumber = firstPageNumber;
+                    int entryNumber = firstEntryNumber;
+                    thefoliosAndEntries = unLibro.processLibro(pageNumber, entryNumber, finalFiles[indexToProcess].thePath, finalFiles[indexToProcess].thePathFinal);
+                    break;
                 }
             }
-            return response;
+            return thefoliosAndEntries;
         }
 
         /// ---------------------------- SETERS
 
-        /// <summary>
-        /// Sets value for numeroPreParte.
-        /// </summary>
-        /// <param name="numeroP">Number of PreParte.</param>
-        public void setIdPreParte(string numeroP)
-        {
-            numeroPreParte = numeroP;
-        }
-        /// <summary>
-        /// Sets value for IdEmpresa.
-        /// </summary>
-        /// <param name="idE">Number of Id Empresa.</param>
-        public void setIdEmpresa(string idE)
-        {
-            idEmpresa = idE;
-        }
         /// <summary>
         /// Sets value for losLibros.
         /// </summary>
@@ -141,67 +133,70 @@ namespace Erosionlunar.ProcesadorLibros.Models
         {
             losLibros = libros;
         }
-
+        /// <summary>
+        /// Extract the information of PreParteBasic and gives it to the PreParteFormulario
+        /// </summary>
+        /// <param name="onePreParte">One PreParteBasic full of values.</param>
+        public void setBasicPreParte(PreParteBasic onePreParte)
+        {
+            numeroPreParte = onePreParte.idPreParte;
+            idEmpresa = onePreParte.idEmpresa;
+            inicioE = onePreParte.startExcercise;
+        }
         /// <summary>
         /// Sets value for startingFilesPaths.
         /// </summary>
         /// <param name="sFiles">List of paths of starting files.</param>
         public void setStartingFiles(List<string> sFiles)
         {
-            startingFiles.Paths = sFiles;
+            foreach(string onePath in sFiles)
+            {
+                var newFile = new fileLibro();
+                newFile.thePath = onePath;
+                startingFiles.Add(newFile);
+            }
+            getIdLPosibles();
+            getFechasPosibles();
         }
         /// <summary>
-        /// Sets value for inicioE.
+        /// Extract the information of basicInfoProcess and gives it to the libros
         /// </summary>
-        /// <param name="theStartE">Number of starting month of exercise.</param>
-        public void setInicioE(string theStartE)
+        /// <param name="theInfo">One basicInfoProcess full of values.</param>
+        /// <param name="index">Index of the libro to set values</param>
+        public void setBasicInfoProcess(basicInfoProcess theInfo, int index)
         {
-            inicioE = theStartE;
-        }
-        /// <summary>
-        /// Sets the value of regexNombreLibro of a libro giving it's index.
-        /// </summary>
-        /// <param name="theRegex">Regex of the nomrbe of the libro.</param>
-        /// <param name="index">Number of index of the losLibros list.</param>
-        public void setRegexUnLibro(Regex theRegex, int index)
-        {
-            losLibros[index].setRegexNombreLibro(theRegex);
-        }
-        /// <summary>
-        /// Sets the value of the Regex used in the manipulator giving it's index of libro.
-        /// </summary>
-        /// <param name="listStrings">Strings of the regex used.</param>
-        /// <param name="index">Number of index of the losLibros list.</param>
-        public void setListRegexString(List<string> listStrings, int index)
-        {
-            losLibros[index].setProcessRegexString(listStrings);
-        }
-        /// <summary>
-        /// Sets the value of the strings used in the manipulator giving it's index of libro.
-        /// </summary>
-        /// <param name="listStrings">Strings used in the manipulator.</param>
-        /// <param name="index">Number of index of the losLibros list.</param>
-        public void setListInfo(List<string> listStrings, int index)
-        {
-            losLibros[index].setProcessInfo(listStrings);
+            losLibros[index].setRegexNombreLibro(theInfo.libroRegex);
+            losLibros[index].setProcessRegexString(theInfo.rawProcessRegex);
+            losLibros[index].setProcessInfo(theInfo.infosForProcess);
         }
         /// <summary>
         /// Sets pathsFinales, it uses the libro to make the new name of the file
         /// </summary>
-        public void setPathsFinales()
+        private void setPathsFinales()
         {
-            finalFiles.Paths = new List<string>();
-            for (int i = 0; i < finalFiles.Ids.Count; i++)
+            for (int i = 0; i < finalFiles.Count; i++)
             {
                 foreach (Libro oneLibro in losLibros)
                 {
-                    if (finalFiles.Ids[i] == oneLibro.idL)
+                    if (finalFiles[i].id == oneLibro.idL)
                     {
-                        string finalNameFile = oneLibro.getNombreFile(finalFiles.Dates[i], finalFiles.Fracciones[i], startingFiles.Paths[i]);
-                        finalFiles.Paths.Add(finalNameFile);
+                        string finalNameFile = oneLibro.calculateNombreFile(finalFiles[i].date, finalFiles[i].fraccion, startingFiles[i].thePath);
+                        finalFiles[i].thePathFinal = finalNameFile;
                     }
                 }
             }
+        }
+        /// <summary>
+        /// Given the index, page number and entry number it gets the finalFile of that index
+        /// and set the last entry and page number with those numbers.
+        /// </summary>
+        /// <param name="index">Index of a finalFile</param>
+        /// <param name="lastEntryNumber">Last number of entry of the file</param>
+        /// <param name="lastPageNumber">Last number of page number of the file</param>
+        public void setLastNumbers(int lastPageNumber, int lastEntryNumber, int index)
+        {
+            finalFiles[index].pageNumberE = lastPageNumber;
+            finalFiles[index].entryNumberE = lastEntryNumber;
         }
 
         /// ------------------ GETERS
@@ -225,44 +220,65 @@ namespace Erosionlunar.ProcesadorLibros.Models
         /// Returns a List o the basic information of a file.
         /// It returns its Id libro, month, year, fraccion and order of process.
         /// </summary>
-        public List<List<string>> getAllLibrosInOrder()
+        public int getNumberFiles()
         {
-            var response = new List<List<string>>();
-            //starts to get the order of files
-            int quantity = finalFiles.Ids.Count;
-            for (int i = 1; i <= quantity; i++) //It loops first for the unique dates
+            return finalFiles.Count();
+        }
+        /// <summary>
+        /// Giving the name of a libro it returns the Id Libro that correspond.
+        /// </summary>
+        /// <param name="name">Name of a libro.</param>
+        public string getLibroFromNameA(string name)
+        {
+            var response = "";
+            foreach (Libro unLibro in losLibros)
             {
-                int j = finalFiles.Orders.IndexOf(i);
-                var miniResponse = new List<string>();
-                miniResponse.Add(finalFiles.Ids[j]);
-                var month = finalFiles.Dates[j].Month.ToString();
-                var year = finalFiles.Dates[j].Year.ToString();
-                miniResponse.Add(month);
-                miniResponse.Add(year);
-                miniResponse.Add(finalFiles.Fracciones[j]);
-                miniResponse.Add(finalFiles.Orders[j].ToString());
-                response.Add(miniResponse);
+                if (unLibro.nombreAL == name)
+                {
+                    response = unLibro.idL; break;
+                }
             }
             return response;
         }
+        /// <summary>
+        /// Given the index of a finalFile it it gets the id Libro, and the date and fraccion corresponding to the previous file.
+        /// </summary>
+        /// <param name="indexFile">Index of a finalFile</param>
+        public List<string> getQueryFolio(int indexFile)
+        {
+            var response = new List<string>();
+            var queryFraccion = finalFiles[indexFile].fraccion;
+            var queryMonth = finalFiles[indexFile].date.Month.ToString();
+            var queryYear = finalFiles[indexFile].date.Year.ToString();
 
-        /// --------------------- Get POSIBLES
+            if ((queryFraccion == "0" || queryFraccion == "1") && queryMonth != inicioEjercicio) // If not start of excercice and fraccion is 0 or 1 it chanches the date to the previous month
+            {
+                var theDate = DateTime.ParseExact(String.Join('/', "01", addCeroMonth(queryMonth), queryYear), "dd/MM/yyyy", CultureInfo.InvariantCulture);
+                theDate = theDate.AddMonths(-1);
+                queryMonth = theDate.Month.ToString();
+                queryYear = theDate.Year.ToString();
+            }
+            else if (queryFraccion != "0" && queryFraccion != "1")
+            {
+                queryFraccion = (Int32.Parse(queryFraccion) - 1).ToString();
+            }
+            var queryDate = addCeroMonth(queryMonth) + queryYear.Substring(2, 2);
 
-
+            return new List<string> { finalFiles[indexFile].id, queryDate, queryFraccion };
+        }
         /// <summary>
         /// Sets the fechasFilesPosibles, it searcheas in the startingFilesPaths using the methods of each Libro.
         /// </summary>
         public void getFechasPosibles()
         {
-            startingFiles.Dates = new List<DateTime>();
-            for(int i = 0; i < startingFiles.Paths.Count; i++)
+            for (int i = 0; i < startingFiles.Count; i++)
             {
-                Libro libroToUse = losLibros[getIndexIdL(startingFiles.Ids[i])];
-                DateTime laFecha = libroToUse.getFecha(startingFiles.Paths[i]);
-                startingFiles.Dates.Add(laFecha);
+                Libro libroToUse = losLibros[getIndexIdL(startingFiles[i].id)];
+                DateTime laFecha = libroToUse.getFecha(startingFiles[i].thePath);
+                startingFiles[i].date = laFecha;
             }
         }
-        
+
         /// <summary>
         /// Sets the idLibrosPosibles, it loops to every path in startingFilesPaths
         /// and then takes the starting lines of the files.
@@ -272,100 +288,27 @@ namespace Erosionlunar.ProcesadorLibros.Models
         /// </summary>
         public void getIdLPosibles()
         {
-            startingFiles.Ids = new List<string>();
-            foreach (string startingFile in startingFiles.Paths)
+            foreach (fileLibro oneFile in startingFiles)
             {
-                var firstTenLines = theFileProcessor.getLineas(startingFile, 10);
+                var firstTenLines = theFileProcessor.getLineas(oneFile.thePath, 10);
                 foreach (Libro oneLibro in losLibros)
                 {
                     var esElLibro = oneLibro.checkLines(firstTenLines);
-                    if (esElLibro) { startingFiles.Ids.Add(oneLibro.idL); break; }
+                    if (esElLibro) { oneFile.id = oneLibro.idL; break; }
                 }
             }
         }
         /// <summary>
-        /// Gets a list of basic information of only one libro of a giving date and id Libro.
-        /// Each list contains the Id libro, month, year and fraccion.
+        /// Given the index of a fileFinal it takes from the previous index the last page and entry numbers.
         /// </summary>
-        public List<List<string>> getFirstsLibros()
+        /// <param name="index">Index of a finalFile</param>
+        public List<int> getPreviousNumbers(int index)
         {
-            var theDatesUniques = finalFiles.Dates.Distinct().OrderByDescending(date => date).ToList(); //It gets the Dates of the files and takes out the repetitions and orders by more recent to latest
-            var theIdLUniques = finalFiles.Ids.Distinct().OrderByDescending(date => date).ToList(); //It gets the Dates of the files and takes out the repetitions and orders by more recent to latest
-            var response = new List<List<string>>();
-            //starts to get the order of files
-            for (int i = 0; i < theIdLUniques.Count; i++) //It loops first for the unique dates
-            {
-                var miniResponse = new List<string>();
-                miniResponse.Add(theIdLUniques[i]);
-                for(int j = 0; j < theDatesUniques.Count; j++)
-                {
-                    int indexOfMatch = getIndexOfIdLAndDateMinFraccion(theIdLUniques[i], theDatesUniques[j]);
-                    if(indexOfMatch != -1)
-                    {
-                        var month = finalFiles.Dates[indexOfMatch].Month.ToString();
-                        var year = finalFiles.Dates[indexOfMatch].Year.ToString();
-                        miniResponse.Add(month);
-                        miniResponse.Add(year);
-                        miniResponse.Add(finalFiles.Fracciones[indexOfMatch]);
-                        response.Add(miniResponse);
-                        break;
-                    }
-                }
-            }
+            var response = new List<int>();
+            var previousIndex = index - 1;
+            response.Add(finalFiles[previousIndex].pageNumberE);
+            response.Add(finalFiles[previousIndex].entryNumberE);
             return response;
-        }
-        /// <summary>
-        /// Giving a Id Libro and a date it loops by the same index in idLibrosFinales and fechasFilesFinales.
-        /// First it gets the minimum number of fraccion of the same index. Then
-        /// loops through to get the index of the minimum fraccion, date and id Libro. Finally returns that index.
-        /// </summary>
-        /// <param name="idL">String of the number of a Id Libro.</param>
-        /// <param name="theDate">Date of a file</param>
-        private int getIndexOfIdLAndDateMinFraccion(string idL, DateTime theDate)
-        {
-            var response = -1;
-            var minFraccion = 999;
-            for (int i = 0; i < finalFiles.Ids.Count; i++)
-            {
-                if (finalFiles.Ids[i] == idL && finalFiles.Dates[i] == theDate)
-                {
-                    if (Int32.Parse(finalFiles.Fracciones[i]) < minFraccion)
-                    {
-                        minFraccion = Int32.Parse(finalFiles.Fracciones[i]);
-                    }
-                }
-            }
-
-            for (int i = 0; i < finalFiles.Ids.Count; i++)
-            {
-                if (finalFiles.Ids[i] == idL && finalFiles.Dates[i] == theDate && finalFiles.Fracciones[i] == minFraccion.ToString())
-                {
-                    response = i; break;
-                }
-            }
-            return response;
-        }
-
-        /// <summary>
-        /// Given the index, first page number and first entry number it process the file and return the last page number and last entry number.
-        /// </summary>
-        /// <param name="indexToProcess">Number of the index of file to process in the startingFilesPaths list.</param>
-        /// <param name="firstPageNumber">First page number to use</param>
-        /// <param name="firstEntryNumber">First entry number to use</param>
-        public List<int> proccessOneLibro(int indexToProcess, string firstPageNumber, string firstEntryNumber)
-        {
-            var thefoliosAndEntries = new List<int>();
-            foreach (Libro unLibro in losLibros)
-            {
-                if (finalFiles.Ids[indexToProcess] == unLibro.idL)
-                {
-                    int pageNumber = Int32.Parse(firstPageNumber);
-                    int entryNumber = Int32.Parse(firstEntryNumber);
-                    thefoliosAndEntries = unLibro.proccesLibro(pageNumber, entryNumber, startingFiles.Paths[indexToProcess], finalFiles.Paths[indexToProcess]);
-                    break;
-                }
-            }
-            return thefoliosAndEntries;
         }
         /// <summary>
         /// Gets the index of the losLibros wich mathes the Id Libro giving.
@@ -384,6 +327,110 @@ namespace Erosionlunar.ProcesadorLibros.Models
             }
             return index;
         }
+        /// <summary>
+        /// Given the index of a finalFile gets the id libro of that file.
+        /// </summary>
+        /// <param name="index">Index of a finalFile</param>
+        public string getIdLibroFile(int index)
+        {
+            return finalFiles[index].id;
+        }
+        /// <summary>
+        /// Given the index of a finalFile gets the fraccion of that file.
+        /// </summary>
+        /// <param name="index">Index of a finalFile</param>
+        public string getFraccionFile(int index)
+        {
+            return finalFiles[index].fraccion;
+        }
+        /// <summary>
+        /// Given the index of a finalFile it calulates it MD5 hash.
+        /// </summary>
+        /// <param name="index">Index of a finalFile</param>
+        public string getHashFile(int index)
+        {
+            return CalculateMD5(finalFiles[index].thePath);
+        }
+        /// <summary>
+        /// Given the index of a finalFile gets the date of that file.
+        /// </summary>
+        /// <param name="index">Index of a finalFile</param>
+        public DateTime getDateFile(int index)
+        {
+            return finalFiles[index].date;
+        }
+
+        /// <summary>
+        /// Given the index of the finalFile it looks if the month of process is the same as inicioEjercicio.
+        /// </summary>
+        /// <param name="indexFile"></param>
+        public bool isFileStartingMonth(int indexFile)
+        {
+            var response = false;
+            var monthFile = finalFiles[indexFile].date.Month.ToString();
+            if(monthFile == inicioEjercicio)
+            {
+                response = true;
+            }
+            return response;
+        }
         
+        /// <summary>
+        /// Given the index of a fileFinal it looks if the file in the previous index is the last
+        /// made of the same Id libro.
+        /// </summary>
+        /// <param name="index">Index of a finalFile</param>
+        public bool isPrevious(int index)
+        {
+            var response = false;
+            if(index != 0)
+            {
+                var previousIndex = index - 1;
+                var fraccionNow = finalFiles[index].fraccion;
+                var fraccionPrevious = finalFiles[previousIndex].fraccion;
+                var dateNow = finalFiles[index].date;
+                var datePrevious = finalFiles[previousIndex].date;
+                var idLPrevious = finalFiles[previousIndex].id;
+                var idLNow = finalFiles[index].id;
+                if((fraccionNow == "0" || fraccionNow == "1") && dateNow.AddMonths(-1) == datePrevious && idLPrevious == idLNow)//If the previous is the month before
+                {
+                    response = true;
+                }
+                else if((fraccionNow != "0" && fraccionNow != "1") && dateNow == datePrevious && idLPrevious == idLNow && fraccionPrevious == (Int32.Parse(fraccionNow) - 1).ToString())// If the previous is the fraccion before
+                {
+                    response = true;
+                }
+            }
+            return response;
+        }
+        
+        /// <summary>
+        /// Given a string with the number of the month it adds a 0 in front if its only one digit long.
+        /// </summary>
+        /// <param name="theMonth">String with the value of the number of a month</param>
+        protected string addCeroMonth(string theMonth)
+        {
+            string response = theMonth;
+            if (response.Length == 1)
+            {
+                response = "0" + response;
+            }
+            return response;
+        }
+        /// <summary>
+        /// Returns the MD5 hash of a file
+        /// </summary>
+        /// <param name="pathF">File path of a Libro file.</param>
+        private string CalculateMD5(string pathF)
+        {
+            using (var md5 = MD5.Create())
+            {
+                using (var stream = File.OpenRead(pathF))
+                {
+                    var hash = md5.ComputeHash(stream);
+                    return BitConverter.ToString(hash).Replace("-", "").ToUpperInvariant();
+                }
+            }
+        }
     }
 }

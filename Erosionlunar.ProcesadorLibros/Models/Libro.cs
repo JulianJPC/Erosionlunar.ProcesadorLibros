@@ -41,7 +41,7 @@ namespace Erosionlunar.ProcesadorLibros.Models
         /// <remarks>
         /// Uses the Manipulador.
         /// </remarks>
-        public string getNombreFile(DateTime theDate, string theFraccion, string pathFolder)
+        public string calculateNombreFile(DateTime theDate, string theFraccion, string pathFolder)
         {
             return theManipulator.makeNameFile(theDate, theFraccion, nombreArchivoL, pathFolder);
         }
@@ -99,7 +99,7 @@ namespace Erosionlunar.ProcesadorLibros.Models
         /// <remarks>
         /// Uses the Manipulador.
         /// </remarks>
-        public List<int> proccesLibro(int firstPageNumber, int firstEntry, string thePath, string finalPath)
+        public List<int> processLibro(int firstPageNumber, int firstEntry, string thePath, string finalPath)
         {
             return theManipulator.modFile(firstPageNumber, firstEntry, thePath, finalPath);
         }

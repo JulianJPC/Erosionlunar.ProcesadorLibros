@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Configuration;
 using System.Collections;
+using System.Windows;
+using static iText.IO.Image.Jpeg2000ImageData;
 
 namespace Erosionlunar.ProcesadorLibros.DB
 {
@@ -17,6 +19,47 @@ namespace Erosionlunar.ProcesadorLibros.DB
         {
             string connectionString = ConfigurationManager.ConnectionStrings["MyDbConnection"].ConnectionString;
             conexionDB = new MySqlConnection(connectionString);
+        }
+        /// <summary>
+        /// Given a list of QueryDB of UPDATE, INSERT or DELETE it executes them in a transaction and then
+        /// commits it.
+        /// </summary>
+        /// <param name="querys">List of QueryDBs</param>
+        public void ExecuteQueriesWithTransaction(List<QueryDB> querys)
+        {
+            using (conexionDB)
+            {
+                conexionDB.Open();
+
+                using (var transaction = conexionDB.BeginTransaction())
+                {
+                    try
+                    {
+                        foreach(var oneQuery in querys)
+                        {
+                            using (var command = new MySqlCommand(oneQuery.query, conexionDB, transaction))
+                            {
+                                // Bind parameters for the current query
+                                for (int i = 0; i < oneQuery.parameteres.Count; i++)
+                                {
+                                    command.Parameters.AddWithValue(oneQuery.parameteres[i], oneQuery.values[i]);
+                                }
+
+                                // Execute the query
+                                command.ExecuteNonQuery();
+                            }
+                        }
+                        // Commit transaction if all queries succeeded
+                        transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        // Rollback transaction if an error occurs
+                        transaction.Rollback();
+                        MessageBox.Show($"Error Transacción: {ex.Message}", "Error");
+                    }
+                }
+            }
         }
         public void Dispose()
         {
